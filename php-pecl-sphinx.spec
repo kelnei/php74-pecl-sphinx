@@ -6,7 +6,7 @@
 
 Name:		php-pecl-sphinx
 Version:	1.0.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
@@ -93,6 +93,9 @@ fi
 
 
 %changelog
+* Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.0-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Sun Sep 06 2009 Andrew Colin Kissa <andrew@topdog.za.net> - 1.0.0-2
 - Add checks
 - Add php-devel version requirement

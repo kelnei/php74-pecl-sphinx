@@ -21,7 +21,7 @@ Requires:       php(api) = %{php_core_api}
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 
-Provides:       php-pecl(%{pecl_name}) = %{version
+Provides:       php-pecl(%{pecl_name}) = %{version}
 
 
 %description

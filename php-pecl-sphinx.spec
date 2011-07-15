@@ -1,30 +1,27 @@
-%global php_apiver	%((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
-%{!?__pecl:		%{expand: %%global __pecl     %{_bindir}/pecl}}
-%{!?php_extdir:		%{expand: %%global php_extdir %(php-config --extension-dir)}}
+%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
+%{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
+%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 
 %define pecl_name sphinx
 
 Name:		php-pecl-sphinx
-Version:	1.0.0
-Release:	3%{?dist}
+Version:	1.1.0
+Release:	1%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
 URL:		http://pecl.php.net/package/%{pecl_name}
 Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:	libsphinxclient-devel php-pear
+BuildRequires:	libsphinxclient-devel
+BuildRequires:  php-pear
 BuildRequires:	php-devel >= 5.1.3
-Requires(post):	%{__pecl}
-Requires(postun):	%{__pecl}
-Provides:	php-pecl(%{pecl_name}) = %{version}
+Requires:       php(zend-abi) = %{php_zend_api}
+Requires:       php(api) = %{php_core_api}
+Requires(post): %{__pecl}
+Requires(postun): %{__pecl}
 
-%if %{?php_zend_api}0
-Requires:	php(zend-abi) = %{php_zend_api}
-Requires:	php(api) = %{php_core_api}
-%else
-Requires:	php-api = %{php_apiver}
-%endif
+Provides:       php-pecl(%{pecl_name}) = %{version
 
 
 %description
@@ -70,19 +67,14 @@ EOF
 %clean
 %{__rm} -rf %{buildroot}
 
-%if 0%{?pecl_install:1}
 %post
 %{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
-%endif
 
 
-%if 0%{?pecl_uninstall:1}
 %postun
-if [ $1 -eq 0 ]; then
+if [ $1 -eq 0 ]  ; then
 %{pecl_uninstall} %{pecl_name} >/dev/null || :
 fi
-%endif
-
 
 %files
 %defattr(-,root,root,-)
@@ -93,6 +85,10 @@ fi
 
 
 %changelog
+* Fri Jul 15 2011 Andrew Colin Kissa <andrew@topdog.za.net> - 1.1.0-1
+- Update to latest upstream
+- Fix bugzilla #715830
+
 * Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 

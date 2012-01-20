@@ -6,12 +6,15 @@
 
 Name:		php-pecl-sphinx
 Version:	1.1.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
 URL:		http://pecl.php.net/package/%{pecl_name}
 Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
+# https://bugs.php.net/60349
+Patch0:         sphinx-php54.patch
+
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:	libsphinxclient-devel
 BuildRequires:  php-pear
@@ -23,6 +26,12 @@ Requires(postun): %{__pecl}
 
 Provides:       php-pecl(%{pecl_name}) = %{version}
 
+# RPM 4.8
+%{?filter_provides_in: %filter_provides_in %{php_extdir}/.*\.so$}
+%{?filter_setup}
+# RPM 4.9
+%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{php_extdir}/.*\\.so$
+
 
 %description
 This extension provides PHP bindings for libsphinxclient, 
@@ -30,6 +39,15 @@ client library for Sphinx the SQL full-text search engine.
 
 %prep
 %setup -q -c
+%patch0 -p0 -b .php54
+
+# Upstream often forget this
+extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' %{pecl_name}-%{version}/php_sphinx.h)
+if test "x${extver}" != "x%{version}"; then
+   : Error: Upstream version is ${extver}, expecting %{version}.
+   exit 1
+fi
+
 [ -f package2.xml ] || %{__mv} package.xml package2.xml
 %{__mv} package2.xml %{pecl_name}-%{version}/%{pecl_name}.xml
 
@@ -85,6 +103,10 @@ fi
 
 
 %changelog
+* Thu Jan 19 2012 Remi Collet <remi@fedoraproject.org> - 1.1.0-3
+- build against php 5.4, with patch
+- add filter to fix private-shared-object-provides
+
 * Sat Jan 14 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 

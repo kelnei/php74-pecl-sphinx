@@ -5,15 +5,13 @@
 %define pecl_name sphinx
 
 Name:		php-pecl-sphinx
-Version:	1.1.0
-Release:	5%{?dist}
+Version:	1.2.0
+Release:	1%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
 URL:		http://pecl.php.net/package/%{pecl_name}
 Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-# https://bugs.php.net/60349
-Patch0:         sphinx-php54.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:	libsphinxclient-devel
@@ -39,7 +37,9 @@ client library for Sphinx the SQL full-text search engine.
 
 %prep
 %setup -q -c
-%patch0 -p0 -b .php54
+
+# https://bugs.php.net/bug.php?id=61793
+sed -i -e '/PHP_SPHINX_VERSION/s/1.1.0/%{version}/' %{pecl_name}-%{version}/php_sphinx.h
 
 # Upstream often forget this
 extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' %{pecl_name}-%{version}/php_sphinx.h)
@@ -103,6 +103,10 @@ fi
 
 
 %changelog
+* Fri Mar 22 2013 Remi Collet <rcollet@redhat.com> - 1.1.0-6
+- update to 1.2.0
+- rebuild for http://fedoraproject.org/wiki/Features/Php55
+
 * Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 

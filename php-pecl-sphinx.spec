@@ -146,5 +146,5 @@ fi
 - Add checks
 - Add php-devel version requirement
 
-* Mon Aug 05 2009 Andrew Colin Kissa <andrew@topdog.za.net> - 1.0.0-1
+* Wed Aug 05 2009 Andrew Colin Kissa <andrew@topdog.za.net> - 1.0.0-1
 - Initial package

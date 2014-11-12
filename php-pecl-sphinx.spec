@@ -10,15 +10,12 @@
 
 Name:		php-pecl-sphinx
 Version:	1.3.2
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
 URL:		http://pecl.php.net/package/%{pecl_name}
 Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-
-# As sphinx, see #1107361
-ExclusiveArch: %{ix86} x86_64
 
 BuildRequires:	libsphinxclient-devel
 BuildRequires:  php-pear
@@ -143,6 +140,9 @@ fi
 
 
 %changelog
+* Wed Nov 12 2014 Dan Horák <dan[at]danny.cz> - 1.3.2-3
+- drop ExclusiveArch, sphinx has been fixed
+
 * Wed Oct 29 2014 Remi Collet <rcollet@fedoraproject.org> - 1.3.2-2
 - set ExclusiveArch, as sphinx (detected by Koschei)
 

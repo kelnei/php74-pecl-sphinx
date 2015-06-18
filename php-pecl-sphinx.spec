@@ -10,7 +10,7 @@
 
 Name:		php-pecl-sphinx
 Version:	1.3.2
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
@@ -140,6 +140,9 @@ fi
 
 
 %changelog
+* Thu Jun 18 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.2-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
 * Wed Nov 12 2014 Dan Horák <dan[at]danny.cz> - 1.3.2-3
 - drop ExclusiveArch, sphinx has been fixed
 

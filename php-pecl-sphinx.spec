@@ -10,7 +10,7 @@
 
 Name:		php-pecl-sphinx
 Version:	1.3.2
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
@@ -22,8 +22,10 @@ BuildRequires:  php-pear
 BuildRequires:	php-devel >= 5.1.3
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
+%if 0%{?fedora} < 24
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
+%endif
 
 Provides:       php-%{pecl_name} = %{version}
 Provides:       php-%{pecl_name}%{?_isa} = %{version}
@@ -116,6 +118,7 @@ do install -Dpm 644 $i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
 done
 
 
+%if 0%{?fedora} < 24
 %post
 %{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
 
@@ -124,6 +127,7 @@ done
 if [ $1 -eq 0 ]  ; then
 %{pecl_uninstall} %{pecl_name} >/dev/null || :
 fi
+%endif
 
 
 %files
@@ -140,6 +144,9 @@ fi
 
 
 %changelog
+* Sat Feb 13 2016 Remi Collet <remi@fedoraproject.org> - 1.3.2-6
+- F24: drop scriptlets (replaced by file triggers in php-pear)
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.2-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 

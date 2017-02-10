@@ -1,42 +1,41 @@
-%{!?__pecl:      %global __pecl      %{_bindir}/pecl}
+# https://github.com/php/pecl-search_engine-sphinx/tree/php7
+%global gh_commit   201eb00bd370bf8ff2d5787ac1a1b588f14af5a0
+%global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
+%global gh_owner    php
+%global gh_project  pecl-search_engine-sphinx
+%global gh_date     20170203
 
-%define pecl_name   sphinx
-%global with_zts    0%{?__ztsphp:1}
-%if "%{php_version}" < "5.6"
-%global ini_name    %{pecl_name}.ini
-%else
+%global pecl_name   sphinx
+%global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
-%endif
 
 Name:		php-pecl-sphinx
-Version:	1.3.2
+Version:	1.4.0
+%if 0%{?gh_date:1}
+Release:	0.1.%{gh_date}git%{gh_short}%{?dist}
+%else
 Release:	6%{?dist}
+%endif
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
 License:	PHP
 URL:		http://pecl.php.net/package/%{pecl_name}
+%if 0%{?gh_date:1}
+Source0:	https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
+%else
 Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
+%endif
 
 BuildRequires:	libsphinxclient-devel
 BuildRequires:  php-pear
-BuildRequires:	php-devel >= 5.1.3
+BuildRequires:	php-devel >= 7
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
-%if 0%{?fedora} < 24
-Requires(post): %{__pecl}
-Requires(postun): %{__pecl}
-%endif
 
 Provides:       php-%{pecl_name} = %{version}
 Provides:       php-%{pecl_name}%{?_isa} = %{version}
 Provides:       php-pecl(%{pecl_name}) = %{version}
 Provides:       php-pecl(%{pecl_name})%{?_isa} = %{version}
-
-%if 0%{?fedora} < 20 && 0%{?rhel} < 7
-# Filter private shared object
-%{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
-%{?filter_setup}
-%endif
 
 
 %description
@@ -45,14 +44,26 @@ client library for Sphinx the SQL full-text search engine.
 
 %prep
 %setup -q -c
-
+%if 0%{?gh_date:1}
+mv %{gh_project}-%{gh_commit} NTS
+%{__php} -r '
+  $pkg = simplexml_load_file("NTS/package.xml");
+  $pkg->date = substr("%{gh_date}",0,4)."-".substr("%{gh_date}",4,2)."-".substr("%{gh_date}",6,2);
+  $pkg->version->release = "%{version}dev";
+  $pkg->stability->release = "devel";
+  $pkg->asXML("package.xml");
+'
+%else
 mv %{pecl_name}-%{version} NTS
+%endif
+
+sed -e '/LICENSE/s/role="doc"/role="src"/' -i package.xml
 
 cd NTS
 # Upstream often forget this
 extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' php_sphinx.h)
-if test "x${extver}" != "x%{version}"; then
-   : Error: Upstream version is ${extver}, expecting %{version}.
+if test "x${extver}" != "x%{version}%{?gh_date:-dev}"; then
+   : Error: Upstream version is ${extver}, expecting %{version}%{?gh_date:-dev}.
    exit 1
 fi
 cd ..
@@ -118,19 +129,8 @@ do install -Dpm 644 $i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
 done
 
 
-%if 0%{?fedora} < 24
-%post
-%{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
-
-
-%postun
-if [ $1 -eq 0 ]  ; then
-%{pecl_uninstall} %{pecl_name} >/dev/null || :
-fi
-%endif
-
-
 %files
+%license NTS/LICENSE
 %doc %{pecl_docdir}/%{pecl_name}
 %{pecl_xmldir}/%{name}.xml
 
@@ -144,6 +144,10 @@ fi
 
 
 %changelog
+* Fri Feb 10 2017 Remi Collet <remi@remirepo.net> - 1.4.0-0.1.20170203git201eb00
+- update to 1.4.0-dev (git snapshot) for PHP 7
+- fix license installation
+
 * Sat Feb 13 2016 Remi Collet <remi@fedoraproject.org> - 1.3.2-6
 - F24: drop scriptlets (replaced by file triggers in php-pear)
 

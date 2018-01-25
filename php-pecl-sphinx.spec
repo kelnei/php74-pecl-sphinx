@@ -1,3 +1,6 @@
+# we don't want -z defs linker flag
+%undefine _strict_symbol_defs_build
+
 # https://github.com/php/pecl-search_engine-sphinx/tree/php7
 %global gh_commit   201eb00bd370bf8ff2d5787ac1a1b588f14af5a0
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
@@ -12,7 +15,7 @@
 Name:		php-pecl-sphinx
 Version:	1.4.0
 %if 0%{?gh_date:1}
-Release:	0.4.%{gh_date}git%{gh_short}%{?dist}
+Release:	0.5.%{gh_date}git%{gh_short}%{?dist}
 %else
 Release:	9%{?dist}
 %endif
@@ -144,6 +147,9 @@ done
 
 
 %changelog
+* Thu Jan 25 2018 Remi Collet <remi@remirepo.net> - 1.4.0-0.5.20170203git201eb00
+- undefine _strict_symbol_defs_build
+
 * Tue Oct 03 2017 Remi Collet <remi@fedoraproject.org> - 1.4.0-0.4.20170203git201eb00
 - rebuild for https://fedoraproject.org/wiki/Changes/php72
 

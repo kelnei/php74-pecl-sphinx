@@ -15,9 +15,9 @@
 Name:		php-pecl-sphinx
 Version:	1.4.0
 %if 0%{?gh_date:1}
-Release:	0.7.%{gh_date}git%{gh_short}%{?dist}
+Release:	0.8.%{gh_date}git%{gh_short}%{?dist}
 %else
-Release:	11%{?dist}
+Release:	12%{?dist}
 %endif
 Summary:	PECL extension for Sphinx SQL full-text search engine
 Group:		Development/Languages
@@ -147,6 +147,9 @@ done
 
 
 %changelog
+* Thu Oct 11 2018 Remi Collet <remi@remirepo.net> - 1.4.0-0.8.20170203git201eb00
+- Rebuild for https://fedoraproject.org/wiki/Changes/php73
+
 * Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.4.0-0.7.20170203git201eb00
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 

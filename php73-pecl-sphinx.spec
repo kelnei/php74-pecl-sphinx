@@ -83,7 +83,7 @@ cat > %{ini_name} << 'EOF'
 extension=%{pecl_name}.so
 EOF
 
-%if %{with_zts}
+%if %{with zts}
 # duplicate for ZTS build
 cp -pr NTS ZTS
 %endif
@@ -96,7 +96,7 @@ pushd NTS
 %make_build
 popd
 
-%if %{with_zts}
+%if %{with zts}
 pushd ZTS
 %{_bindir}/zts-phpize
 %configure  --with-php-config=%{_bindir}/zts-php-config
@@ -111,7 +111,7 @@ popd
     --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
     --modules | grep %{pecl_name}
 
-%if %{with_zts}
+%if %{with zts}
 : simple module load test for the ZTS extension
 %{__ztsphp} --no-php-ini \
     --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
@@ -128,7 +128,7 @@ install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{pecl_name}.xml
 # install config file
 install -D -p -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
-%if %{with_zts}
+%if %{with zts}
 # Install the ZTS stuff
 make -C ZTS install INSTALL_ROOT=%{buildroot}
 install -D -p -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
@@ -166,7 +166,7 @@ fi
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
 
-%if %{with_zts}
+%if %{with zts}
 %config(noreplace) %{php_ztsinidir}/%{ini_name}
 %{php_ztsextdir}/%{pecl_name}.so
 %endif

@@ -123,7 +123,7 @@ popd
 make -C NTS install INSTALL_ROOT=%{buildroot}
 
 # Install XML package description
-install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{pecl_name}.xml
 
 # install config file
 install -D -p -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
@@ -143,7 +143,7 @@ done
 %files
 %license NTS/LICENSE
 %doc %{pecl_docdir}/%{pecl_name}
-%{pecl_xmldir}/%{name}.xml
+%{pecl_xmldir}/%{pecl_name}.xml
 
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
@@ -157,6 +157,7 @@ done
 %changelog
 * Thu May 09 2019 Matt Linscott <matt.linscott@gmail.com> 1.4.0-0.8.20170203gitd958afb
 - Port from Fedora to IUS
+- Install package.xml as %%{pecl_name}.xml, not %%{name}.xml
 
 * Thu Oct 11 2018 Remi Collet <remi@remirepo.net> - 1.4.0-0.8.20170203git201eb00
 - Rebuild for https://fedoraproject.org/wiki/Changes/php73

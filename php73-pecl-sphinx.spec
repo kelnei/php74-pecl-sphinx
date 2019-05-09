@@ -35,8 +35,8 @@ Source0:    https://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 
 Requires:       php(zend-abi) = %{php_zend_api}
 BuildRequires:  libsphinxclient-devel
-BuildRequires:  php-pear
 BuildRequires:  %{php}-devel
+BuildRequires:  pear1
 Requires:       php(api) = %{php_core_api}
 
 Provides:       php-%{pecl_name} = %{version}
@@ -140,6 +140,24 @@ do install -D -p -m 644 NTS/$i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
 done
 
 
+%triggerin -- pear1
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%posttrans
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%postun
+if [ $1 -eq 0 -a -x %{__pecl} ]; then
+    %{pecl_uninstall} %{pecl_name} >/dev/null || :
+fi
+
+
 %files
 %license NTS/LICENSE
 %doc %{pecl_docdir}/%{pecl_name}
@@ -158,6 +176,7 @@ done
 * Thu May 09 2019 Matt Linscott <matt.linscott@gmail.com> 1.4.0-0.8.20170203gitd958afb
 - Port from Fedora to IUS
 - Install package.xml as %%{pecl_name}.xml, not %%{name}.xml
+- Add pear1 and scriptlets
 
 * Thu Oct 11 2018 Remi Collet <remi@remirepo.net> - 1.4.0-0.8.20170203git201eb00
 - Rebuild for https://fedoraproject.org/wiki/Changes/php73

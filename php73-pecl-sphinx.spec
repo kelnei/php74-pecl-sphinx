@@ -1,38 +1,42 @@
+# IUS spec file for php73-pecl-sphinx, forked from:
+#
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
 # https://github.com/php/pecl-search_engine-sphinx/tree/php7
-%global gh_commit   201eb00bd370bf8ff2d5787ac1a1b588f14af5a0
+%global gh_commit   d958afb6c587f08eee37602dbd8518afdcd72916
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    php
 %global gh_project  pecl-search_engine-sphinx
 %global gh_date     20170203
 
 %global pecl_name   sphinx
-%global with_zts    0%{!?_without_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
+%global php         php73
 
-Name:		php-pecl-sphinx
-Version:	1.4.0
+%bcond_with zts
+
+Name:       %{php}-pecl-%{pecl_name}
+Version:    1.4.0
 %if 0%{?gh_date:1}
-Release:	0.8.%{gh_date}git%{gh_short}%{?dist}
+Release:    0.8.%{gh_date}git%{gh_short}%{?dist}
 %else
-Release:	12%{?dist}
+Release:    12%{?dist}
 %endif
-Summary:	PECL extension for Sphinx SQL full-text search engine
-Group:		Development/Languages
-License:	PHP
-URL:		http://pecl.php.net/package/%{pecl_name}
+Summary:    PECL extension for Sphinx SQL full-text search engine
+Group:      Development/Languages
+License:    PHP
+URL:        https://pecl.php.net/package/%{pecl_name}
 %if 0%{?gh_date:1}
-Source0:	https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
+Source0:    https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 %else
-Source0:	http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
+Source0:    https://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 %endif
 
-BuildRequires:	libsphinxclient-devel
-BuildRequires:  php-pear
-BuildRequires:	php-devel >= 7
 Requires:       php(zend-abi) = %{php_zend_api}
+BuildRequires:  libsphinxclient-devel
+BuildRequires:  php-pear
+BuildRequires:  %{php}-devel
 Requires:       php(api) = %{php_core_api}
 
 Provides:       php-%{pecl_name} = %{version}
@@ -40,10 +44,15 @@ Provides:       php-%{pecl_name}%{?_isa} = %{version}
 Provides:       php-pecl(%{pecl_name}) = %{version}
 Provides:       php-pecl(%{pecl_name})%{?_isa} = %{version}
 
+Provides:       php-pecl-sphinx = %{version}-%{release}
+Provides:       php-pecl-sphinx%{?_isa} = %{version}-%{release}
+Conflicts:      php-pecl-sphinx% < %{version}-%{release}
+
 
 %description
 This extension provides PHP bindings for libsphinxclient, 
 client library for Sphinx the SQL full-text search engine.
+
 
 %prep
 %setup -q -c
@@ -62,14 +71,12 @@ mv %{pecl_name}-%{version} NTS
 
 sed -e '/LICENSE/s/role="doc"/role="src"/' -i package.xml
 
-cd NTS
 # Upstream often forget this
-extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' php_sphinx.h)
+extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' NTS/php_sphinx.h)
 if test "x${extver}" != "x%{version}%{?gh_date:-dev}"; then
    : Error: Upstream version is ${extver}, expecting %{version}%{?gh_date:-dev}.
    exit 1
 fi
-cd ..
 
 cat > %{ini_name} << 'EOF'
 ; Enable %{pecl_name} extension module
@@ -83,16 +90,18 @@ cp -pr NTS ZTS
 
 
 %build
-cd NTS
+pushd NTS
 %{_bindir}/phpize
 %configure  --with-php-config=%{_bindir}/php-config
-make %{?_smp_mflags}
+%make_build
+popd
 
 %if %{with_zts}
-cd ../ZTS
+pushd ZTS
 %{_bindir}/zts-phpize
 %configure  --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
+%make_build
+popd
 %endif
 
 
@@ -114,21 +123,20 @@ make %{?_smp_mflags}
 make -C NTS install INSTALL_ROOT=%{buildroot}
 
 # Install XML package description
-install -Dpm 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
 # install config file
-install -Dpm644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
+install -D -p -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 %if %{with_zts}
 # Install the ZTS stuff
 make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -Dpm644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
+install -D -p -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
 
 # Documentation
-cd NTS
-for i in $(grep 'role="doc"' ../package.xml | sed -e 's/^.*name="//;s/".*$//')
-do install -Dpm 644 $i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
+for i in $(grep 'role="doc"' package.xml | sed -e 's/^.*name="//;s/".*$//')
+do install -D -p -m 644 NTS/$i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
 done
 
 
@@ -147,6 +155,9 @@ done
 
 
 %changelog
+* Thu May 09 2019 Matt Linscott <matt.linscott@gmail.com> 1.4.0-0.8.20170203gitd958afb
+- Port from Fedora to IUS
+
 * Thu Oct 11 2018 Remi Collet <remi@remirepo.net> - 1.4.0-0.8.20170203git201eb00
 - Rebuild for https://fedoraproject.org/wiki/Changes/php73
 

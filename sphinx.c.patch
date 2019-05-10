@@ -1,0 +1,238 @@
+--- sphinx.c.orig	2019-05-10 14:44:30.025854032 -0700
++++ sphinx.c	2019-05-10 14:46:10.345375956 -0700
+@@ -389,25 +389,6 @@
+ }
+ /* }}} */
+ 
+-/* {{{ proto bool SphinxClient::setMatchMode(int mode) */
+-static PHP_METHOD(SphinxClient, setMatchMode)
+-{
+-	php_sphinx_client *c;
+-	zend_long mode;
+-	int res;
+-
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &mode) == FAILURE) {
+-		return;
+-	}
+-
+-	c = sphinx_client(getThis());
+-	SPHINX_INITIALIZED(c)
+-
+-	res = sphinx_set_match_mode(c->sphinx, mode);
+-	RETURN_BOOL(res);
+-}
+-/* }}} */
+-
+ /* {{{ proto bool SphinxClient::setIndexWeights(array weights) */
+ static PHP_METHOD(SphinxClient, setIndexWeights)
+ {
+@@ -610,28 +591,6 @@
+ }
+ /* }}} */
+ 
+-/* {{{ proto bool SphinxClient::setGeoAnchor(string attrlat, string attrlong, float latitude, float longitude) */
+-static PHP_METHOD(SphinxClient, setGeoAnchor)
+-{
+-	php_sphinx_client *c;
+-	char *attrlat, *attrlong;
+-	int res;
+-	double latitude, longitude;
+-	size_t attrlat_len, attrlong_len;
+-
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ssdd", &attrlat, &attrlat_len, &attrlong, &attrlong_len, &latitude, &longitude) == FAILURE) {
+-		return;
+-	}
+-
+-	c = sphinx_client(getThis());
+-	SPHINX_INITIALIZED(c)
+-
+-	res = sphinx_set_geoanchor(c->sphinx, attrlat, attrlong, latitude, longitude);
+-
+-	RETURN_BOOL(res);
+-}
+-/* }}} */
+-
+ /* {{{ proto bool SphinxClient::setGroupBy(string attribute, int func[, string groupsort]) */
+ static PHP_METHOD(SphinxClient, setGroupBy)
+ {
+@@ -1529,93 +1488,6 @@
+ }
+ /* }}} */
+ 
+-/* {{{ proto bool SphinxClient::setOverride(string attribute, int type, array values) */
+-static PHP_METHOD(SphinxClient, setOverride)
+-{
+-	php_sphinx_client *c;
+-	zval *values, *attr_value;
+-	char *attribute;
+-	zend_long type;
+-	size_t attribute_len, values_num, i = 0;
+-	int res;
+-	sphinx_uint64_t *docids = NULL;
+-	unsigned int *vals = NULL;
+-	zend_long id;
+-	zend_string *str_id;
+-
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sla", &attribute, &attribute_len, &type, &values) == FAILURE) {
+-		return;
+-	}
+-
+-	c = sphinx_client(getThis());
+-	SPHINX_INITIALIZED(c)
+-
+-	if (type != SPH_ATTR_INTEGER && type != SPH_ATTR_TIMESTAMP
+-		&& type != SPH_ATTR_BOOL && type != SPH_ATTR_FLOAT) {
+-		php_error_docref(NULL, E_WARNING, "type must be scalar");
+-		RETURN_FALSE;
+-	}
+-
+-	values_num = zend_hash_num_elements(Z_ARRVAL_P(values));
+-	if (!values_num) {
+-		php_error_docref(NULL, E_WARNING, "empty values array passed");
+-		RETURN_FALSE;
+-	}
+-
+-	docids = emalloc(sizeof(sphinx_uint64_t) * values_num);
+-	vals = safe_emalloc(values_num, sizeof(unsigned int), 0);
+-	ZEND_HASH_FOREACH_KEY_VAL_IND(Z_ARRVAL_P(values), id, str_id, attr_value) {
+-		double float_id = 0;
+-		unsigned char id_type;
+-
+-		if (Z_TYPE_P(attr_value) != IS_LONG) {
+-			php_error_docref(NULL, E_WARNING, "attribute value must be integer");
+-			break;
+-		}
+-
+-		if (!str_id) {
+-			/* ok */
+-			id_type = IS_LONG;
+-		} else {
+-			id_type = is_numeric_string(str_id->val, str_id->len, &id, &float_id, 0);
+-			if (id_type == IS_LONG || id_type == IS_DOUBLE) {
+-				/* ok */
+-			} else {
+-				php_error_docref(NULL, E_WARNING, "document ID must be numeric");
+-				break;
+-			}
+-		}
+-		vals[i] = (sphinx_uint64_t)Z_LVAL_P(attr_value);
+-
+-		if (id_type == IS_LONG) {
+-			docids[i] = (sphinx_uint64_t)id;
+-		} else { /* IS_FLOAT */
+-			docids[i] = (sphinx_uint64_t)float_id;
+-		}
+-		i++;
+-	} ZEND_HASH_FOREACH_END();
+-
+-	if (i != values_num) {
+-		RETVAL_FALSE;
+-		goto cleanup;
+-	}
+-
+-	res = sphinx_add_override(c->sphinx, attribute, docids, values_num, vals);
+-	if (!res) {
+-		RETVAL_FALSE;
+-	} else {
+-		RETVAL_TRUE;
+-	}
+-
+-cleanup:
+-	if (docids) {
+-		efree(docids);
+-	}
+-	if (vals) {
+-		efree(vals);
+-	}
+-}
+-/* }}} */
+ #endif
+ 
+ /* {{{ proto int SphinxClient::__sleep() */
+@@ -1645,10 +1517,6 @@
+ 	ZEND_ARG_INFO(0, cutoff)
+ ZEND_END_ARG_INFO()
+ 
+-ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setmatchmode, 0, 0, 1)
+-	ZEND_ARG_INFO(0, mode)
+-ZEND_END_ARG_INFO()
+-
+ ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setindexweights, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, weights)
+ ZEND_END_ARG_INFO()
+@@ -1683,13 +1551,6 @@
+ 	ZEND_ARG_INFO(0, exclude)
+ ZEND_END_ARG_INFO()
+ 
+-ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setgeoanchor, 0, 0, 4)
+-	ZEND_ARG_INFO(0, attrlat)
+-	ZEND_ARG_INFO(0, attrlong)
+-	ZEND_ARG_INFO(0, latitude)
+-	ZEND_ARG_INFO(0, longitude)
+-ZEND_END_ARG_INFO()
+-
+ ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setgroupby, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, attribute)
+ 	ZEND_ARG_INFO(0, func)
+@@ -1709,14 +1570,6 @@
+ 	ZEND_ARG_INFO(0, qtime)
+ ZEND_END_ARG_INFO()
+ 
+-#if LIBSPHINX_VERSION_ID >= 99
+-ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setoverride, 0, 0, 3)
+-	ZEND_ARG_INFO(0, attribute)
+-	ZEND_ARG_INFO(0, type)
+-	ZEND_ARG_INFO(0, values)
+-ZEND_END_ARG_INFO()
+-#endif
+-
+ #if HAVE_3ARG_SPHINX_SET_RANKING_MODE
+ ZEND_BEGIN_ARG_INFO_EX(arginfo_sphinxclient_setrankingmode, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, ranker)
+@@ -1802,7 +1655,6 @@
+ #endif
+ 	PHP_ME(SphinxClient, setFilterFloatRange, 	arginfo_sphinxclient_setfilterrange, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setFilterRange, 		arginfo_sphinxclient_setfilterrange, ZEND_ACC_PUBLIC)
+-	PHP_ME(SphinxClient, setGeoAnchor, 			arginfo_sphinxclient_setgeoanchor, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setGroupBy, 			arginfo_sphinxclient_setgroupby, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setGroupDistinct, 		arginfo_sphinxclient_setgroupdistinct, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setIndexWeights, 		arginfo_sphinxclient_setindexweights, ZEND_ACC_PUBLIC)
+@@ -1811,11 +1663,7 @@
+ 	PHP_ME(SphinxClient, setSelect, 			arginfo_sphinxclient_setselect, ZEND_ACC_PUBLIC)
+ #endif
+ 	PHP_ME(SphinxClient, setLimits, 			arginfo_sphinxclient_setlimits, ZEND_ACC_PUBLIC)
+-	PHP_ME(SphinxClient, setMatchMode, 			arginfo_sphinxclient_setmatchmode, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setMaxQueryTime, 		arginfo_sphinxclient_setmaxquerytime, ZEND_ACC_PUBLIC)
+-#if LIBSPHINX_VERSION_ID >= 99
+-	PHP_ME(SphinxClient, setOverride, 			arginfo_sphinxclient_setoverride, ZEND_ACC_PUBLIC)
+-#endif
+ 	PHP_ME(SphinxClient, setRankingMode, 		arginfo_sphinxclient_setrankingmode, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setRetries, 			arginfo_sphinxclient_setretries, ZEND_ACC_PUBLIC)
+ 	PHP_ME(SphinxClient, setServer, 			arginfo_sphinxclient_setserver, ZEND_ACC_PUBLIC)
+@@ -1855,16 +1703,8 @@
+ 	SPHINX_CONST(SEARCHD_RETRY);
+ 	SPHINX_CONST(SEARCHD_WARNING);
+ 
+-	SPHINX_CONST(SPH_MATCH_ALL);
+-	SPHINX_CONST(SPH_MATCH_ANY);
+-	SPHINX_CONST(SPH_MATCH_PHRASE);
+-	SPHINX_CONST(SPH_MATCH_BOOLEAN);
+-	SPHINX_CONST(SPH_MATCH_EXTENDED);
+-	SPHINX_CONST(SPH_MATCH_FULLSCAN);
+-	SPHINX_CONST(SPH_MATCH_EXTENDED2);
+-
+-	SPHINX_CONST(SPH_RANK_PROXIMITY_BM25);
+-	SPHINX_CONST(SPH_RANK_BM25);
++	SPHINX_CONST(SPH_RANK_PROXIMITY_BM15);
++	SPHINX_CONST(SPH_RANK_BM15);
+ 	SPHINX_CONST(SPH_RANK_NONE);
+ 	SPHINX_CONST(SPH_RANK_WORDCOUNT);
+ #ifdef HAVE_SPH_RANK_PROXIMITY
+@@ -1891,7 +1731,6 @@
+ 	SPHINX_CONST(SPH_SORT_ATTR_ASC);
+ 	SPHINX_CONST(SPH_SORT_TIME_SEGMENTS);
+ 	SPHINX_CONST(SPH_SORT_EXTENDED);
+-	SPHINX_CONST(SPH_SORT_EXPR);
+ 
+ 	SPHINX_CONST(SPH_FILTER_VALUES);
+ 	SPHINX_CONST(SPH_FILTER_RANGE);

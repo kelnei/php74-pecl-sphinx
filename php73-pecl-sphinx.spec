@@ -33,11 +33,15 @@ Source0:    https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{
 Source0:    https://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 %endif
 
-Requires:       php(zend-abi) = %{php_zend_api}
+Patch0:     sphinx.c.patch
+
+
 BuildRequires:  libsphinxclient-devel
 BuildRequires:  %{php}-devel
 BuildRequires:  pear1
+
 Requires:       php(api) = %{php_core_api}
+Requires:       php(zend-abi) = %{php_zend_api}
 
 Provides:       php-%{pecl_name} = %{version}
 Provides:       php-%{pecl_name}%{?_isa} = %{version}
@@ -68,6 +72,10 @@ mv %{gh_project}-%{gh_commit} NTS
 %else
 mv %{pecl_name}-%{version} NTS
 %endif
+
+pushd NTS
+%patch0
+popd
 
 sed -e '/LICENSE/s/role="doc"/role="src"/' -i package.xml
 
@@ -173,7 +181,10 @@ fi
 
 
 %changelog
-* Thu May 09 2019 Matt Linscott <matt.linscott@gmail.com> 1.4.0-0.8.20170203gitd958afb
+* Fri May 10 2019 Matt Linscott <matt.linscott@mgail.com> - 1.4.0-0.8.20170203gitd958afb
+- Patch sphinx.c to remove methods remove from libsphinxclient 
+
+* Thu May 09 2019 Matt Linscott <matt.linscott@gmail.com> - 1.4.0-0.8.20170203gitd958afb
 - Port from Fedora to IUS
 - Install package.xml as %%{pecl_name}.xml, not %%{name}.xml
 - Add pear1 and scriptlets

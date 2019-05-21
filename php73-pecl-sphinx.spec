@@ -3,13 +3,8 @@
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
-# https://github.com/php/pecl-search_engine-sphinx/tree/php7
-%global gh_commit   d958afb6c587f08eee37602dbd8518afdcd72916
-%global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
-%global gh_owner    php
+# https://github.com/ClassifiedAds/pecl-search_engine-sphinx
 %global gh_project  pecl-search_engine-sphinx
-%global gh_date     20170203
-
 %global pecl_name   sphinx
 %global ini_name    40-%{pecl_name}.ini
 %global php         php73
@@ -17,24 +12,13 @@
 %bcond_with zts
 
 Name:       %{php}-pecl-%{pecl_name}
-Version:    1.4.0
-%if 0%{?gh_date:1}
-Release:    0.8.%{gh_date}git%{gh_short}%{?dist}
-%else
-Release:    12%{?dist}
-%endif
+Version:    3.1.1
+Release:    1%{?dist}
 Summary:    PECL extension for Sphinx SQL full-text search engine
 Group:      Development/Languages
 License:    PHP
 URL:        https://pecl.php.net/package/%{pecl_name}
-%if 0%{?gh_date:1}
-Source0:    https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
-%else
-Source0:    https://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-%endif
-
-Patch0:     sphinx.c.patch
-
+Source0:    https://github.com/ClassifiedAds/%{gh_project}/releases/download/%{pecl_name}-%{version}/%{pecl_name}-%{version}.tgz
 
 BuildRequires:  libsphinxclient-devel
 BuildRequires:  %{php}-devel
@@ -60,29 +44,14 @@ client library for Sphinx the SQL full-text search engine.
 
 %prep
 %setup -q -c
-%if 0%{?gh_date:1}
-mv %{gh_project}-%{gh_commit} NTS
-%{__php} -r '
-  $pkg = simplexml_load_file("NTS/package.xml");
-  $pkg->date = substr("%{gh_date}",0,4)."-".substr("%{gh_date}",4,2)."-".substr("%{gh_date}",6,2);
-  $pkg->version->release = "%{version}dev";
-  $pkg->stability->release = "devel";
-  $pkg->asXML("package.xml");
-'
-%else
 mv %{pecl_name}-%{version} NTS
-%endif
-
-pushd NTS
-%patch0
-popd
 
 sed -e '/LICENSE/s/role="doc"/role="src"/' -i package.xml
 
 # Upstream often forget this
 extver=$(sed -n '/#define PHP_SPHINX_VERSION/{s/.* "//;s/".*$//;p}' NTS/php_sphinx.h)
-if test "x${extver}" != "x%{version}%{?gh_date:-dev}"; then
-   : Error: Upstream version is ${extver}, expecting %{version}%{?gh_date:-dev}.
+if test "x${extver}" != "x%{version}"; then
+   : Error: Upstream version is ${extver}, expecting %{version}.
    exit 1
 fi
 
@@ -181,6 +150,10 @@ fi
 
 
 %changelog
+* Tue May 21 2019 Matt Linscott <matt.linscott@gmail.com> - 3.1.1-1
+- Rebuild repackaged upstream
+- Remove patch
+
 * Fri May 10 2019 Matt Linscott <matt.linscott@mgail.com> - 1.4.0-0.8.20170203gitd958afb
 - Patch sphinx.c to remove methods remove from libsphinxclient 
 

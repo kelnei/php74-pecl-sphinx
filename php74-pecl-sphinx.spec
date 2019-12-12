@@ -1,4 +1,4 @@
-# IUS spec file for php73-pecl-sphinx, forked from:
+# IUS spec file for php74-pecl-sphinx, forked from:
 #
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
@@ -7,13 +7,13 @@
 %global gh_project  pecl-search_engine-sphinx
 %global pecl_name   sphinx
 %global ini_name    40-%{pecl_name}.ini
-%global php         php73
+%global php         php74
 
 %bcond_with zts
 
 Name:       %{php}-pecl-%{pecl_name}
 Version:    3.1.1
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    PECL extension for Sphinx SQL full-text search engine
 Group:      Development/Languages
 License:    PHP
@@ -150,6 +150,9 @@ fi
 
 
 %changelog
+* Thu Dec 12 2019 Matt Linscott <matt.linscott@gmail.com> - 3.1.1-2
+- Rebuild for PHP 7.4
+
 * Tue May 21 2019 Matt Linscott <matt.linscott@gmail.com> - 3.1.1-1
 - Rebuild repackaged upstream
 - Remove patch
